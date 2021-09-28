@@ -25,12 +25,10 @@ class Player {
     this.status = status
   }
 
-  takeDamage = (nbDmgToReceive) => {
-    // console.log(`this.hp (avant de recevoir les dégâts) = ${this.hp}`)
+  underAttack = (nbDmgToReceive) => {
     // console.log(`dmgs à recevoir = ${nbDmgToReceive}`)
 
     this.hp = this.hp - nbDmgToReceive
-    // console.log(`this.hp (après l'attaque) = ${this.hp}`)
 
     if (this.hp <= 0) {
       this.status = "lost"
@@ -40,8 +38,12 @@ class Player {
   }
 
   attack = (victim) => {
-    victim.takeDamage(this.dmg)
-
+    if (this.hp > 0) {
+      console.log(`A toi de jouer, ${this.name}`)
+      console.log(`L'attaque inflige ${this.dmg} points de dégât à ${victim.name}`)
+      victim.underAttack(this.dmg)
+      console.log(`Il reste à ${victim.name} ${victim.hp} pv après cette attaque`)
+    }
   }
 }
 
@@ -87,12 +89,6 @@ class Assassin extends Player {
   // et de ne pas prendre de dégâts lors du prochain tour. Cette attaque coûte 20 mana.
 }
 
-const p1Fighter = new Fighter('Grace');
-const p2Paladin = new Paladin('Ulder');
-const p3Monk = new Monk('Moana');
-const p4Berzeker = new Berzerker('Draven');
-const p5Assassin = new Assassin('Carl');
-
 class Turn {
   constructor(player1, player2) {
     this.player1 = player1
@@ -100,25 +96,46 @@ class Turn {
   }
 
   startTurn = (turn) => {
+    console.log('******************************************************************')
     console.log(`C'est le tour n°${turn}, soyez prêts !`)
-    console.log(`A toi de jouer, ${this.player1.name} (${this.player1.hp} pv)`)
-    console.log(`${this.player2.name} va recevoir l'attaque (${this.player2.hp} pv)`)
-
     this.player1.attack(this.player2)
-    console.log(`${this.player1.name} inflige à ${this.player2.name} ${this.player1.dmg} points de dégâts`)
-    console.log(`Il reste à ${this.player2.name} ${this.player2.hp} points de vie`)
-    console.log(`A toi de jouer, ${this.player2.name} (${this.player2.hp} pv)`)
     this.player2.attack(this.player1)
-    console.log(`${this.player2.name} inflige à ${this.player1.name} ${this.player2.dmg} points de dégâts`)
-    console.log(`Il reste à ${this.player1.name} ${this.player1.hp} points de vie`)
+    console.log(`C'est la fin du tour n°${turn}`)
+    console.log('******************************************************************')
   }
 }
 
 class Game {
   constructor(player1, player2) {
     this.turnLeft = 10
+    this.status = "going"
     this.player1 = player1
     this.player2 = player2
+  }
+
+  PlayGame = () => {
+    while (this.status === "going") {
+      this.newTurn()
+      this.isGameOver()
+    }
+    console.log(`Je te dis que le jeu est vraiment terminé`)
+  }
+
+  alivePlayers = () => {
+    let playersArray = [this.player1, this.player2]
+    let alivePlayers = playersArray.filter(player => player.hp > 0)
+    return alivePlayers
+  }
+
+  isGameOver = () => {
+    if (this.turnLeft === 0) {
+      this.status = "over"
+      console.log(`Tous les tours ont été joués, le jeu est terminé`)
+    }
+    else if (this.alivePlayers().length < 2) {
+      this.status = "over"
+      console.log(`Il ne reste plus que ${this.alivePlayers()[0].name} en vie, le jeu est terminé`)
+    }
   }
 
   newTurn = () => {
@@ -132,5 +149,9 @@ class Game {
 }
 
 const game1 = new Game(p1Fighter, p2Paladin)
-
+const p1Fighter = new Fighter('Grace');
+const p2Paladin = new Paladin('Ulder');
+const p3Monk = new Monk('Moana');
+const p4Berzeker = new Berzerker('Draven');
+const p5Assassin = new Assassin('Carl');
 
