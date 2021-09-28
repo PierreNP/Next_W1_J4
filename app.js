@@ -1,27 +1,55 @@
 class Attack {
-  constructor(name, dmg, manaCost, hp) {
+  constructor(dmg) {
     this.dmg = dmg
-    this.manaCost = manaCost
-    this.hp = hp
+  }
+
+  underAttack = (victim, dmg) => {
+    victim.loseHp(dmg)
+  }
+
+  loseHp = (dmg) => {
+    this.hp -= dmg
+  }
+
+  attack = (victim) => {
+    victim.underAttack(this.dmg)
+  }
+}
+
+// // si on choisit regular attack
+// player1.Attack.attack(player2)
+// // si on choisit special attack
+// player1.SpecialAttack.attack(player2)
+
+class SpecialAttack extends Attack {
+  constructor(name, dmg, manaCost, heal) {
+    super(dmg)
     this.name = name
+    this.manaCost = manaCost
+    this.heal = heal
   }
 
-  benefits = () => {
-
+  underAttack = (dmg) => {
+    this.loseHp(dmg)
   }
 
-  results = (victim) => {
+  loseMana = (attacker) => attacker.mana -= manaCost
+  getHeal = (attacker) => attacker.hp += heal
 
+  attack = (attacker, victim) => {
+    victim.underAttack(this.dmg)
+    getHeal(attacker)
+    loseMana(attacker)
   }
-
 }
 
 class Player {
-  constructor(name, hp, dmg, mana) {
-    this.hp = hp
-    this.dmg = dmg
-    this.mana = mana
+  constructor(name, hp, mana, regularAttack, specialAttack) {
     this.name = name
+    this.hp = hp
+    this.mana = mana
+    this.regularAttack = regularAttack
+    this.specialAttack = specialAttack
     this.status = "playing"
   }
 
@@ -40,7 +68,14 @@ class Player {
   attack = (victim) => {
     if (this.hp > 0) {
       console.log(`A toi de jouer, ${this.name}`)
-      let chosenAttack = prompt(`Quelle attaque veux-tu lancer ?`)
+      let chosenAttack = prompt(`Quelle attaque veux-tu lancer ? Tape 1 pour l'attaque classique, 2 pour l'attaque spéciale`)
+      if (chosenAttack === 1) {
+        victim.underAttack(this.regularAttack.dmg)
+      }
+      else if (chosenAttack === 2) {
+        victim.underAttack(this.regularAttack.dmg)
+      }
+
       console.log(`Vous attaquez avec l'attaque ${chosenAttack}`)
       console.log(`L'attaque inflige ${this.dmg} points de dégât à ${victim.name}`)
       victim.underAttack(this.dmg)
@@ -50,9 +85,9 @@ class Player {
 }
 
 class Fighter extends Player {
-  constructor(name, hp = 12, dmg = 4, mana = 40) {
-    super(name, hp, dmg, mana, status)
-    
+  constructor(name, hp = 12, mana = 40, regularAttack = new Attack(4), specialAttack = new SpecialAttack("Dark Vision", 5, 20)) {
+    super(name, hp, mana, regularAttack, specialAttack)
+
   }
   // Le Fighter aura une attaque spéciale Dark Vision, infligeant 5 dégâts. 
   // Jusqu'au prochain tour, chaque coup reçu lui infligera 2 dégâts de moins. Elle coute 20 mana.
@@ -157,4 +192,4 @@ const p4Berzeker = new Berzerker('Draven');
 const p5Assassin = new Assassin('Carl');
 const game1 = new Game(p1Fighter, p2Paladin)
 
-game1.PlayGame()
+// game1.PlayGame()
