@@ -1,4 +1,4 @@
-class SpecialAttack {
+class Attack {
   constructor(name, dmg, manaCost, hp) {
     this.dmg = dmg
     this.manaCost = manaCost
@@ -17,12 +17,12 @@ class SpecialAttack {
 }
 
 class Player {
-  constructor(name, hp, dmg, mana, status = "playing") {
-    this.hp = hp;
-    this.dmg = dmg;
-    this.mana = mana;
+  constructor(name, hp, dmg, mana) {
+    this.hp = hp
+    this.dmg = dmg
+    this.mana = mana
     this.name = name
-    this.status = status
+    this.status = "playing"
   }
 
   underAttack = (nbDmgToReceive) => {
@@ -40,6 +40,8 @@ class Player {
   attack = (victim) => {
     if (this.hp > 0) {
       console.log(`A toi de jouer, ${this.name}`)
+      let chosenAttack = prompt(`Quelle attaque veux-tu lancer ?`)
+      console.log(`Vous attaquez avec l'attaque ${chosenAttack}`)
       console.log(`L'attaque inflige ${this.dmg} points de dégât à ${victim.name}`)
       victim.underAttack(this.dmg)
       console.log(`Il reste à ${victim.name} ${victim.hp} pv après cette attaque`)
@@ -48,15 +50,16 @@ class Player {
 }
 
 class Fighter extends Player {
-  constructor(name, hp = 12, dmg = 4, mana = 40, status = "Playing") {
+  constructor(name, hp = 12, dmg = 4, mana = 40) {
     super(name, hp, dmg, mana, status)
+    
   }
   // Le Fighter aura une attaque spéciale Dark Vision, infligeant 5 dégâts. 
   // Jusqu'au prochain tour, chaque coup reçu lui infligera 2 dégâts de moins. Elle coute 20 mana.
 }
 
 class Paladin extends Player {
-  constructor(name, hp = 16, dmg = 3, mana = 160, status = "Playing") {
+  constructor(name, hp = 16, dmg = 3, mana = 160) {
     super(name, hp, dmg, mana, status)
   }
   // Le Paladin aura une attaque spéciale Healing Lighting, 
@@ -64,14 +67,14 @@ class Paladin extends Player {
 }
 
 class Monk extends Player {
-  constructor(name, hp = 8, dmg = 2, mana = 200, status = "Playing") {
+  constructor(name, hp = 8, dmg = 2, mana = 200) {
     super(name, hp, dmg, mana, status)
   }
   // Le Monk, quand a lui, aura une attaque spéciale heal rendant 8 PV. Elle coute 25 mana.
 }
 
 class Berzerker extends Player {
-  constructor(name, hp = 8, dmg = 4, mana = 0, status = "Playing") {
+  constructor(name, hp = 8, dmg = 4, mana = 0) {
     super(name, hp, dmg, mana, status)
   }
 
@@ -81,7 +84,7 @@ class Berzerker extends Player {
 }
 
 class Assassin extends Player {
-  constructor(name, hp = 6, dmg = 6, mana = 20, status = "Playing") {
+  constructor(name, hp = 6, dmg = 6, mana = 20) {
     super(name, hp, dmg, mana, status)
 
   }
@@ -123,7 +126,7 @@ class Game {
 
   alivePlayers = () => {
     let playersArray = [this.player1, this.player2]
-    let alivePlayers = playersArray.filter(player => player.hp > 0)
+    let alivePlayers = playersArray.filter(player => player.status === "playing")
     return alivePlayers
   }
 
@@ -141,7 +144,6 @@ class Game {
   newTurn = () => {
     console.log(this.player1)
     console.log(this.player2)
-
     let turn = new Turn(this.player1, this.player2).startTurn(this.turnLeft)
     this.turnLeft = this.turnLeft - 1
     console.log(`Il reste ${this.turnLeft} tours dans la partie`)
