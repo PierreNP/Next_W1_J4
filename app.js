@@ -148,10 +148,11 @@ class Game {
   }
 }
 
-const game1 = new Game(p1Fighter, p2Paladin)
 const p1Fighter = new Fighter('Grace');
 const p2Paladin = new Paladin('Ulder');
 const p3Monk = new Monk('Moana');
 const p4Berzeker = new Berzerker('Draven');
 const p5Assassin = new Assassin('Carl');
+const game1 = new Game(p1Fighter, p2Paladin)
 
+game1.PlayGame()
