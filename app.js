@@ -18,7 +18,7 @@ class Attack {
     if (victim.hp < 1) {
       victim.status = "dead"
       this.attacker.getMana(20)
-      console.log(`${victim.name} est dead (✞✞✞ RIP ✞✞✞), ${this.attacker.name} gagne 20 points de mana !`)
+      console.log(`${victim.name} est dead (RIP ✝️☠️), ${this.attacker.name} gagne 20 points de mana !`)
     }
     else {
       console.log(`${victim.name} est toujours vivant (${victim.hp} hp)`)
@@ -38,6 +38,7 @@ class SpecialAttack extends Attack {
     victim.loseHp(this.dmg)
     this.attacker.loseMana(this.manaCost)
     this.attacker.healHp(this.heal)
+    this.attacker.updateRegularAttack()
     this.deadCheck(victim)
   }
 }
@@ -50,6 +51,8 @@ class Player {
     this.regularAttack = regularAttack
     this.specialAttack = specialAttack
     this.status = "playing"
+    this.thisTurnSpecial = false
+    this.previousTurnSpecial = false
   }
 
   loseHp = (dmg) => {
@@ -71,28 +74,22 @@ class Player {
   // Si jamais les PV d'un personnage tombent à 0, il est éliminé et ne peut plus jouer ni être attaqué. 
 
   launchAttack = (victim) => {
-    if (this.hp > 0) {
-      console.log(`A toi de jouer, ${this.name}`)
-      try {
-        this.chooseAttack(victim).attack(victim)
-      } catch {
-        console.log("Pas d'attaque pour ce coup-ci !")
-      }
-      // console.log(`L'attaque inflige ${this.dmg} points de dégât à ${victim.name}`)
-      // victim.underAttack(this.dmg)
-      // console.log(`Il reste à ${victim.name} ${victim.hp} pv après cette attaque`)
-    }
+    this.previousTurnSpecial = this.thisTurnSpecial
+    console.log(`A toi de jouer, ${this.name}`)
+    this.chooseAttack(victim).attack(victim)
   }
 
   chooseAttack = (victim) => {
     let chosenAttack = prompt(`${this.name}, quelle attaque veux-tu lancer sur ${victim.name} ? Tape 1 pour ton attaque classique, 2 pour ta spéciale ${this.specialAttack.name}`)
     while (chosenAttack != 1 || chosenAttack != 2 || chosenAttack == "forfeit") {
       if (chosenAttack == 1) {
-        console.log(`Vous attaquez avec l'attaque classique`)
+        console.log(`Vous attaquez ${victim.name} avec l'attaque classique (${this.specialAttack.dmg} dmg)`)
+        this.thisTurnSpecial = false
         return this.regularAttack
       }
       else if (chosenAttack == 2) {
-        console.log(`Vous attaquez avec l'attaque speciale`)
+        console.log(`Vous attaquez avec l'attaque speciale (${this.specialAttack.dmg} dmg)`)
+        this.thisTurnSpecial = true
         return this.specialAttack
       }
       else if (chosenAttack == "forfeit")
@@ -103,7 +100,13 @@ class Player {
     }
   }
 
+  updateRegularAttack = () => {
 
+  }
+
+  persistenceEffect = () => {
+
+  }
 }
 
 class Fighter extends Player {
@@ -111,10 +114,18 @@ class Fighter extends Player {
     super(name, hp, mana, regularAttack, specialAttack)
     this.regularAttack = new Attack(4, this)
     this.specialAttack = new SpecialAttack("Dark Vision", 5, this, 20, 0)
-
   }
-  // Le Fighter aura une attaque spéciale Dark Vision, infligeant 5 dégâts. 
-  // Jusqu'au prochain tour, chaque coup reçu lui infligera 2 dégâts de moins. Elle coute 20 mana.
+  // Jusqu'au prochain tour, chaque coup reçu lui infligera 2 dégâts de moins. Elle coute 20 mana
+
+  loseHp = (dmg) => {
+    if (this.thisTurnSpecial === true) {
+      this.hp -= dmg - 2
+    }
+    else {
+      this.hp -= dmg
+    }
+  }
+
 }
 
 class Paladin extends Player {
@@ -122,10 +133,7 @@ class Paladin extends Player {
     super(name, hp, mana, regularAttack, specialAttack)
     this.regularAttack = new Attack(3, this)
     this.specialAttack = new SpecialAttack("Healing Lighting", 4, this, 40, 5)
-
   }
-  // Le Paladin aura une attaque spéciale Healing Lighting, 
-  // infligeant 4 dégâts et le soignant de 5. Elle coute 40 mana.
 }
 
 class Monk extends Player {
@@ -134,19 +142,18 @@ class Monk extends Player {
     this.regularAttack = new Attack(2, this)
     this.specialAttack = new SpecialAttack("Heal", 0, this, 25, 8)
   }
-  // Le Monk, quand a lui, aura une attaque spéciale heal rendant 8 PV. Elle coute 25 mana.
 }
 
 class Berzerker extends Player {
   constructor(name, hp = 8, mana = 0, regularAttack, specialAttack) {
     super(name, hp, mana, regularAttack, specialAttack)
     this.regularAttack = new Attack(4, this)
-    this.specialAttack = new SpecialAttack("Rage", 5, this, 0, -1)
+    this.specialAttack = new SpecialAttack("Rage", 0, this, 0, -1)
   }
 
-  // Le Berzerker aura une attaque spéciale Rage lui donnant +1 pour ses attaques pour tout le reste de la partie 
-  // mais lui enlevant 1 hp. Elle coûte 0 mana. Elle peut être appelée plusieurs fois 
-  // (par exemple, si le Berzerker a fait son attaque spéciale 2 fois, ses attaques infligeront 4 + 2 = 6 points de dégât).
+  updateRegularAttack = () => {
+    this.regularAttack.dmg += 1
+  }
 }
 
 class Assassin extends Player {
@@ -157,6 +164,17 @@ class Assassin extends Player {
   }
   // L'Assassin aura une attaque spéciale Shadow hit lui permettant d'infliger 7 dégâts 
   // et de ne pas prendre de dégâts lors du prochain tour. Cette attaque coûte 20 mana.
+
+  loseHp = (dmg) => {
+    if (this.previousTurnSpecial === true) {
+
+    }
+    else {
+      this.hp -= dmg
+    }
+  }
+
+
 }
 class Turn {
   constructor(alivePlayers) {
@@ -173,16 +191,13 @@ class Turn {
       else
         attacker.launchAttack(this.alivePlayers[this.chooseVictim(attacker) - 1])
     })
-
-    // this.alivePlayers[0].launchAttack(this.alivePlayers[this.chooseVictim()-1])
-
-    // this.alivePlayers[1].launchAttack(this.alivePlayers[this.chooseVictim()-1])
     this.updateAlivePlayers()
     console.log(`C'est la fin du tour n°${turn}`)
     console.log('******************************************************************')
   }
 
   updateAlivePlayers = () => {
+    this.alivePlayers.forEach(player => player.previousTurnSpecial = player.thisTurnSpecial)
     return this.alivePlayers = this.alivePlayers.filter(player => player.hp > 0)
   }
 
@@ -201,7 +216,7 @@ class Game {
     this.deadPlayers = []
   }
 
-  PlayGame = () => {
+  playGame = () => {
     while (this.status === "going") {
       this.newTurn()
     }
@@ -247,6 +262,6 @@ const p2Paladin = new Paladin('Ulder');
 const p3Monk = new Monk('Moana');
 const p4Berzeker = new Berzerker('Draven');
 const p5Assassin = new Assassin('Carl');
-const game1 = new Game([p1Fighter, p11Fighter])
+const game1 = new Game([p1Fighter, p2Paladin, p5Assassin])
 
-// game1.PlayGame()
+// game1.playGame()
