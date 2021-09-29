@@ -1,46 +1,29 @@
 class Attack {
-  constructor(dmg) {
+  constructor(dmg, attacker) {
     this.dmg = dmg
-  }
-
-  underAttack = (victim, dmg) => {
-    victim.loseHp(dmg)
-  }
-
-  loseHp = (dmg) => {
-    this.hp -= dmg
+    this.attacker = attacker
   }
 
   attack = (victim) => {
-    victim.underAttack(this.dmg)
+    victim.loseHp(this.dmg)
   }
+
 }
 
-// // si on choisit regular attack
-// player1.Attack.attack(player2)
-// // si on choisit special attack
-// player1.SpecialAttack.attack(player2)
-
 class SpecialAttack extends Attack {
-  constructor(name, dmg, manaCost, heal) {
-    super(dmg)
+  constructor(name, dmg, attacker, manaCost, heal) {
+    super(dmg, attacker)
     this.name = name
     this.manaCost = manaCost
     this.heal = heal
   }
 
-  underAttack = (dmg) => {
-    this.loseHp(dmg)
+  attack = (victim) => {
+    victim.loseHp(this.dmg)
+    this.attacker.loseMana(this.manaCost)
+    this.attacker.healHp(this.heal)
   }
 
-  loseMana = (attacker) => attacker.mana -= manaCost
-  getHeal = (attacker) => attacker.hp += heal
-
-  attack = (attacker, victim) => {
-    victim.underAttack(this.dmg)
-    getHeal(attacker)
-    loseMana(attacker)
-  }
 }
 
 class Player {
@@ -51,6 +34,18 @@ class Player {
     this.regularAttack = regularAttack
     this.specialAttack = specialAttack
     this.status = "playing"
+  }
+
+  loseHp = (dmg) => {
+    this.hp -= dmg
+  }
+
+  healHp = (healValue) => {
+    this.hp += healValue
+  }
+
+  loseMana = (manaCost) => {
+    this.mana -= manaCost
   }
 
   underAttack = (nbDmgToReceive) => {
@@ -85,8 +80,10 @@ class Player {
 }
 
 class Fighter extends Player {
-  constructor(name, hp = 12, mana = 40, regularAttack = new Attack(4), specialAttack = new SpecialAttack("Dark Vision", 5, 20)) {
+  constructor(name, hp = 12, mana = 40, regularAttack, specialAttack) {
     super(name, hp, mana, regularAttack, specialAttack)
+    this.regularAttack = new Attack(4, this)
+    this.specialAttack = new SpecialAttack("Dark Vision", 5, this, 20, 0)
 
   }
   // Le Fighter aura une attaque spéciale Dark Vision, infligeant 5 dégâts. 
@@ -186,6 +183,7 @@ class Game {
 }
 
 const p1Fighter = new Fighter('Grace');
+const p11Fighter = new Fighter('MichMich');
 const p2Paladin = new Paladin('Ulder');
 const p3Monk = new Monk('Moana');
 const p4Berzeker = new Berzerker('Draven');
