@@ -76,7 +76,9 @@ class Player {
   launchAttack = (victim) => {
     this.previousTurnSpecial = this.thisTurnSpecial
     console.log(`A toi de jouer, ${this.name}`)
+    console.log(`Avant l'attaque, ${this.name} compte ${this.mana} points mana`)
     this.chooseAttack(victim).attack(victim)
+    console.log(`Après l'attaque, il reste a ${this.name} ${this.mana} points mana`)
   }
 
   chooseAttack = (victim) => {
@@ -88,9 +90,15 @@ class Player {
         return this.regularAttack
       }
       else if (chosenAttack == 2) {
-        console.log(`Vous attaquez avec l'attaque speciale (${this.specialAttack.dmg} dmg)`)
-        this.thisTurnSpecial = true
-        return this.specialAttack
+        if (this.mana >= this.specialAttack.manaCost) {
+          console.log(`Vous attaquez avec l'attaque speciale (${this.specialAttack.dmg} dmg)`)
+
+          this.thisTurnSpecial = true
+          return this.specialAttack
+        } else {
+          console.log("Vous n'avez pas assez de mana pour lancer l'attaque spéciale... Ca sera l'attaque classique du coup !")
+          return this.regularAttack
+        }
       }
       else if (chosenAttack == "forfeit")
         break
@@ -167,7 +175,7 @@ class Assassin extends Player {
 
   loseHp = (dmg) => {
     if (this.previousTurnSpecial === true) {
-
+      console.log(`${this.name} est protégé car il a utilisé son attaque spéciale au dernier tour ! Il ne perd donc pas de hp`)
     }
     else {
       this.hp -= dmg
@@ -188,8 +196,9 @@ class Turn {
     this.alivePlayers.forEach(attacker => {
       if (this.updateAlivePlayers().length < 2)
         return
-      else
+      else {
         attacker.launchAttack(this.alivePlayers[this.chooseVictim(attacker) - 1])
+      }
     })
     this.updateAlivePlayers()
     console.log(`C'est la fin du tour n°${turn}`)
