@@ -91,23 +91,32 @@ class Fighter extends Player {
 }
 
 class Paladin extends Player {
-  constructor(name, hp = 16, dmg = 3, mana = 160) {
-    super(name, hp, dmg, mana, status)
+  constructor(name, hp = 16, mana = 160, regularAttack, specialAttack) {
+    super(name, hp, mana, regularAttack, specialAttack)
+    this.regularAttack = new Attack(3, this)
+    this.specialAttack = new SpecialAttack("Healing Lighting", 4, this, 40, 5)
+
   }
   // Le Paladin aura une attaque spéciale Healing Lighting, 
   // infligeant 4 dégâts et le soignant de 5. Elle coute 40 mana.
 }
 
 class Monk extends Player {
-  constructor(name, hp = 8, dmg = 2, mana = 200) {
-    super(name, hp, dmg, mana, status)
+  constructor(name, hp = 8, mana = 200, regularAttack, specialAttack) {
+    super(name, hp, mana, regularAttack, specialAttack)
+    this.regularAttack = new Attack(2, this)
+    this.specialAttack = new SpecialAttack("Heal", 0, this, 25, 8)
+
   }
   // Le Monk, quand a lui, aura une attaque spéciale heal rendant 8 PV. Elle coute 25 mana.
 }
 
 class Berzerker extends Player {
-  constructor(name, hp = 8, dmg = 4, mana = 0) {
-    super(name, hp, dmg, mana, status)
+  constructor(name, hp = 8, mana = 0, regularAttack, specialAttack) {
+    super(name, hp, mana, regularAttack, specialAttack)
+    this.regularAttack = new Attack(4, this)
+    this.specialAttack = new SpecialAttack("Rage", 5, this, 0, -1)
+
   }
 
   // Le Berzerker aura une attaque spéciale Rage lui donnant +1 pour ses attaques pour tout le reste de la partie 
@@ -116,8 +125,10 @@ class Berzerker extends Player {
 }
 
 class Assassin extends Player {
-  constructor(name, hp = 6, dmg = 6, mana = 20) {
-    super(name, hp, dmg, mana, status)
+  constructor(name, hp = 6, mana = 20, regularAttack, specialAttack) {
+    super(name, hp, mana, regularAttack, specialAttack)
+    this.regularAttack = new Attack(6, this)
+    this.specialAttack = new SpecialAttack("Shadow hit", 7, this, 20, 0)
 
   }
   // L'Assassin aura une attaque spéciale Shadow hit lui permettant d'infliger 7 dégâts 
