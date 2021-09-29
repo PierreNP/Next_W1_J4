@@ -6,8 +6,24 @@ class Attack {
 
   attack = (victim) => {
     victim.loseHp(this.dmg)
+    this.deadCheck(victim)
   }
 
+  kill = (victim) => {
+    victim.loseHp(victim.hp)
+    this.deadCheck(victim)
+  }
+
+  deadCheck = (victim) => {
+    if (victim.hp < 1) {
+      victim.status = "dead"
+      this.attacker.getMana(20)
+      console.log(`${victim.name} est dead (✞✞✞ RIP ✞✞✞), ${this.attacker.name} gagne 20 points de mana !`)
+    }
+    else {
+      console.log(`${victim.name} est toujours vivant (${victim.hp} hp)`)
+    }
+  }
 }
 
 class SpecialAttack extends Attack {
@@ -22,8 +38,8 @@ class SpecialAttack extends Attack {
     victim.loseHp(this.dmg)
     this.attacker.loseMana(this.manaCost)
     this.attacker.healHp(this.heal)
+    this.deadCheck(victim)
   }
-
 }
 
 class Player {
@@ -48,35 +64,46 @@ class Player {
     this.mana -= manaCost
   }
 
-  underAttack = (nbDmgToReceive) => {
-    // console.log(`dmgs à recevoir = ${nbDmgToReceive}`)
-
-    this.hp = this.hp - nbDmgToReceive
-
-    if (this.hp <= 0) {
-      this.status = "lost"
-    }
-    // Si jamais les PV d'un personnage tombent à 0, il est éliminé et ne peut plus jouer ni être attaqué. 
-    // Son statut passe alors à loser. Lorsqu'un personnage en tue un autre, il regagne 20 point de mana.
+  getMana = (manaPrize) => {
+    this.mana += manaPrize
   }
 
-  attack = (victim) => {
+  // Si jamais les PV d'un personnage tombent à 0, il est éliminé et ne peut plus jouer ni être attaqué. 
+
+  launchAttack = (victim) => {
     if (this.hp > 0) {
       console.log(`A toi de jouer, ${this.name}`)
-      let chosenAttack = prompt(`Quelle attaque veux-tu lancer ? Tape 1 pour l'attaque classique, 2 pour l'attaque spéciale`)
-      if (chosenAttack === 1) {
-        victim.underAttack(this.regularAttack.dmg)
+      try {
+        this.chooseAttack(victim).attack(victim)
+      } catch {
+        console.log("Pas d'attaque pour ce coup-ci !")
       }
-      else if (chosenAttack === 2) {
-        victim.underAttack(this.regularAttack.dmg)
-      }
-
-      console.log(`Vous attaquez avec l'attaque ${chosenAttack}`)
-      console.log(`L'attaque inflige ${this.dmg} points de dégât à ${victim.name}`)
-      victim.underAttack(this.dmg)
-      console.log(`Il reste à ${victim.name} ${victim.hp} pv après cette attaque`)
+      // console.log(`L'attaque inflige ${this.dmg} points de dégât à ${victim.name}`)
+      // victim.underAttack(this.dmg)
+      // console.log(`Il reste à ${victim.name} ${victim.hp} pv après cette attaque`)
     }
   }
+
+  chooseAttack = (victim) => {
+    let chosenAttack = prompt(`${this.name}, quelle attaque veux-tu lancer sur ${victim.name} ? Tape 1 pour ton attaque classique, 2 pour ta spéciale ${this.specialAttack.name}`)
+    while (chosenAttack != 1 || chosenAttack != 2 || chosenAttack == "forfeit") {
+      if (chosenAttack == 1) {
+        console.log(`Vous attaquez avec l'attaque classique`)
+        return this.regularAttack
+      }
+      else if (chosenAttack == 2) {
+        console.log(`Vous attaquez avec l'attaque speciale`)
+        return this.specialAttack
+      }
+      else if (chosenAttack == "forfeit")
+        break
+      else {
+        chosenAttack = prompt(`Tu sais lire ? Choisis un chiffre entre 1 et 2 steupl'. C'est dans tes cordes ?`)
+      }
+    }
+  }
+
+
 }
 
 class Fighter extends Player {
@@ -106,7 +133,6 @@ class Monk extends Player {
     super(name, hp, mana, regularAttack, specialAttack)
     this.regularAttack = new Attack(2, this)
     this.specialAttack = new SpecialAttack("Heal", 0, this, 25, 8)
-
   }
   // Le Monk, quand a lui, aura une attaque spéciale heal rendant 8 PV. Elle coute 25 mana.
 }
@@ -116,7 +142,6 @@ class Berzerker extends Player {
     super(name, hp, mana, regularAttack, specialAttack)
     this.regularAttack = new Attack(4, this)
     this.specialAttack = new SpecialAttack("Rage", 5, this, 0, -1)
-
   }
 
   // Le Berzerker aura une attaque spéciale Rage lui donnant +1 pour ses attaques pour tout le reste de la partie 
@@ -129,45 +154,60 @@ class Assassin extends Player {
     super(name, hp, mana, regularAttack, specialAttack)
     this.regularAttack = new Attack(6, this)
     this.specialAttack = new SpecialAttack("Shadow hit", 7, this, 20, 0)
-
   }
   // L'Assassin aura une attaque spéciale Shadow hit lui permettant d'infliger 7 dégâts 
   // et de ne pas prendre de dégâts lors du prochain tour. Cette attaque coûte 20 mana.
 }
-
 class Turn {
-  constructor(player1, player2) {
-    this.player1 = player1
-    this.player2 = player2
+  constructor(alivePlayers) {
+    this.alivePlayers = alivePlayers
   }
 
   startTurn = (turn) => {
     console.log('******************************************************************')
     console.log(`C'est le tour n°${turn}, soyez prêts !`)
-    this.player1.attack(this.player2)
-    this.player2.attack(this.player1)
+
+    this.alivePlayers.forEach(attacker => {
+      if (this.updateAlivePlayers().length < 2)
+        return
+      else
+        attacker.launchAttack(this.alivePlayers[this.chooseVictim(attacker) - 1])
+    })
+
+    // this.alivePlayers[0].launchAttack(this.alivePlayers[this.chooseVictim()-1])
+
+    // this.alivePlayers[1].launchAttack(this.alivePlayers[this.chooseVictim()-1])
+    this.updateAlivePlayers()
     console.log(`C'est la fin du tour n°${turn}`)
     console.log('******************************************************************')
+  }
+
+  updateAlivePlayers = () => {
+    return this.alivePlayers = this.alivePlayers.filter(player => player.hp > 0)
+  }
+
+  chooseVictim = (attacker) => {
+    let choice = prompt(`${attacker.name}, quel joueur souhaites-tu attaquer ?`)
+    return parseInt(choice)
   }
 }
 
 class Game {
-  constructor(player1, player2) {
+  constructor(players) {
     this.turnLeft = 10
     this.status = "going"
-    this.player1 = player1
-    this.player2 = player2
+    this.players = players
+    this.alivePlayers = players
+    this.deadPlayers = []
   }
 
   PlayGame = () => {
     while (this.status === "going") {
       this.newTurn()
-      this.isGameOver()
     }
-    console.log(`Je te dis que le jeu est vraiment terminé`)
   }
 
-  alivePlayers = () => {
+  checkAlivePlayers = () => {
     let playersArray = [this.player1, this.player2]
     let alivePlayers = playersArray.filter(player => player.status === "playing")
     return alivePlayers
@@ -177,19 +217,27 @@ class Game {
     if (this.turnLeft === 0) {
       this.status = "over"
       console.log(`Tous les tours ont été joués, le jeu est terminé`)
+      console.log(`Les joueurs gagnants sont:`)
+      this.alivePlayers.forEach(gagnant => console.log(`${gagnant.name} 🏆`))
     }
-    else if (this.alivePlayers().length < 2) {
+    else if (this.alivePlayers.length < 2) {
       this.status = "over"
-      console.log(`Il ne reste plus que ${this.alivePlayers()[0].name} en vie, le jeu est terminé`)
+      console.log(`Il ne reste plus que ${this.alivePlayers[0].name} en vie, le jeu est terminé`)
     }
   }
 
   newTurn = () => {
-    console.log(this.player1)
-    console.log(this.player2)
-    let turn = new Turn(this.player1, this.player2).startTurn(this.turnLeft)
-    this.turnLeft = this.turnLeft - 1
+    this.isGameOver()
+    if (this.status === "over") {
+      return
+    }
     console.log(`Il reste ${this.turnLeft} tours dans la partie`)
+    console.log(`Voici les joueurs toujours en jeu`)
+    this.alivePlayers.forEach(player => console.log(`${this.alivePlayers.indexOf(player) + 1} - ${player.name} (${player.hp} hp)`))
+    let turn = new Turn(this.alivePlayers)
+    turn.startTurn(this.turnLeft)
+    this.alivePlayers = turn.alivePlayers
+    this.turnLeft = this.turnLeft - 1
   }
 }
 
@@ -199,6 +247,6 @@ const p2Paladin = new Paladin('Ulder');
 const p3Monk = new Monk('Moana');
 const p4Berzeker = new Berzerker('Draven');
 const p5Assassin = new Assassin('Carl');
-const game1 = new Game(p1Fighter, p2Paladin)
+const game1 = new Game([p1Fighter, p11Fighter])
 
 // game1.PlayGame()
