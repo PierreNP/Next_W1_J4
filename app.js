@@ -5,6 +5,10 @@ class Attack {
   }
 
   attack = (victim) => {
+    if (this.attacker.isPoisoned === true) {
+      this.attacker.loseHp(2)
+      console.log(`${this.attacker.name} perd 2hp à cause du poison`)
+    }
     victim.loseHp(this.dmg)
     this.deadCheck(victim)
   }
@@ -35,10 +39,15 @@ class SpecialAttack extends Attack {
   }
 
   attack = (victim) => {
+    if (this.attacker.isPoisoned === true) {
+      this.attacker.loseHp(2)
+      console.log(`${this.attacker.name} perd 2hp à cause du poison`)
+    }
     victim.loseHp(this.dmg)
     this.attacker.loseMana(this.manaCost)
     this.attacker.healHp(this.heal)
     this.attacker.updateRegularAttack()
+    this.attacker.poisonEffect(victim)
     this.deadCheck(victim)
   }
 }
@@ -53,6 +62,7 @@ class Player {
     this.status = "playing"
     this.thisTurnSpecial = false
     this.previousTurnSpecial = false
+    this.isPoisoned = false
   }
 
   loseHp = (dmg) => {
@@ -85,7 +95,7 @@ class Player {
     let chosenAttack = prompt(`${this.name}, quelle attaque veux-tu lancer sur ${victim.name} ? Tape 1 pour ton attaque classique, 2 pour ta spéciale ${this.specialAttack.name}`)
     while (chosenAttack != 1 || chosenAttack != 2 || chosenAttack == "forfeit") {
       if (chosenAttack == 1) {
-        console.log(`Vous attaquez ${victim.name} avec l'attaque classique (${this.specialAttack.dmg} dmg)`)
+        console.log(`Vous attaquez ${victim.name} avec l'attaque classique (${this.regularAttack.dmg} dmg)`)
         this.thisTurnSpecial = false
         return this.regularAttack
       }
@@ -112,8 +122,8 @@ class Player {
 
   }
 
-  persistenceEffect = () => {
-
+  poisonEffect = (victim) => {
+    
   }
 }
 
@@ -149,6 +159,26 @@ class Monk extends Player {
     super(name, hp, mana, regularAttack, specialAttack)
     this.regularAttack = new Attack(2, this)
     this.specialAttack = new SpecialAttack("Heal", 0, this, 25, 8)
+  }
+}
+
+class Wizard extends Player {
+  constructor(name, hp = 10, mana = 200, regularAttack, specialAttack) {
+    super(name, hp, mana, regularAttack, specialAttack)
+    this.regularAttack = new Attack(2, this)
+    this.specialAttack = new SpecialAttack("Fireball", 7, this, 25, 0)
+  }
+}
+
+class Witch extends Player {
+  constructor(name, hp = 10, mana = 100, regularAttack, specialAttack) {
+    super(name, hp, mana, regularAttack, specialAttack)
+    this.regularAttack = new Attack(2, this)
+    this.specialAttack = new SpecialAttack("Poison", 2, this, 50, 0)
+  }
+
+  poisonEffect = (victim) => {
+    victim.isPoisoned = true
   }
 }
 
@@ -194,7 +224,7 @@ class Turn {
     console.log(`C'est le tour n°${turn}, soyez prêts !`)
 
     this.alivePlayers.forEach(attacker => {
-      if (this.updateAlivePlayers().length < 2)
+      if ((this.updateAlivePlayers().length < 2) || (attacker.hp < 1))
         return
       else {
         attacker.launchAttack(this.alivePlayers[this.chooseVictim(attacker) - 1])
@@ -271,6 +301,8 @@ const p2Paladin = new Paladin('Ulder');
 const p3Monk = new Monk('Moana');
 const p4Berzeker = new Berzerker('Draven');
 const p5Assassin = new Assassin('Carl');
-const game1 = new Game([p1Fighter, p2Paladin, p5Assassin])
+const p6Wizard = new Wizard('Gandolf');
+const p7Witch = new Witch('Scarlet');
+const game1 = new Game([p1Fighter, p2Paladin, p7Witch])
 
 // game1.playGame()
