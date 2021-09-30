@@ -274,9 +274,13 @@ class Game {
       console.log(`Les joueurs gagnants sont:`)
       this.alivePlayers.forEach(gagnant => console.log(`${gagnant.name} 🏆`))
     }
-    else if (this.alivePlayers.length < 2) {
+    else if (this.alivePlayers.length === 1) {
       this.status = "over"
       console.log(`Il ne reste plus que ${this.alivePlayers[0].name} en vie, le jeu est terminé`)
+    }
+    else if (this.alivePlayers.length === 0) {
+      this.status = "over"
+      console.log(`Tout le monde est mort, c'est une hécatombe, le jeu est terminé`)
     }
   }
 
